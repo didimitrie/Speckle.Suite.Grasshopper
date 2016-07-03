@@ -1,0 +1,22 @@
+﻿<UserControl x:Class="SpeckleSuite.UserControl1"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:SpeckleSuite"
+             mc:Ignorable="d" Width="248.773" Height="306.666">
+    <Grid Background="White" Height="289" VerticalAlignment="Top">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <Grid.Effect>
+            <DropShadowEffect ShadowDepth="0" Direction="0" Color="#FFBBBBBB" BlurRadius="23"/>
+        </Grid.Effect>
+        <Button x:Name="button" Content="Let's go!" HorizontalAlignment="Center" Height="24" Margin="21,0,22,12" VerticalAlignment="Bottom" Width="206" Background="White" Foreground="#FF000CFF" Click="button_Click" BorderBrush="#FF0046FF" BorderThickness="0,0,0,3" FontWeight="Bold"/>
+        <TextBox x:Name="Apikey" HorizontalAlignment="Center" Height="19" Margin="21,188,22,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="206" TextAlignment="Center" TextDecorations="{x:Null}" FontSize="10.667" ToolTip="API KEY" Text="Paste Your API Key Here" MaxLines="1" BorderThickness="0,0,0,1" AllowDrop="True" FontStyle="Italic" Foreground="Black"/>
+        <TextBlock x:Name="textBlock" HorizontalAlignment="Left" Margin="21,125,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="206" Height="44" FontSize="13.333" Text="Welcome to Speckle. You'll be up and running in no time! " Foreground="#FF686868" TextAlignment="Center"/>
+        <TextBlock x:Name="textBlock_Copy" HorizontalAlignment="Left" Margin="21,207,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="206" Height="33" FontSize="9.333" Foreground="#FF9C9C9C" Text="Your API key can be accessed in your dashboard. You'll only have to do this once." FontStyle="Italic" TextAlignment="Center"/>
+        <Image x:Name="Image1_png" Margin="106,0,106,214" Source="Image1.png" Stretch="Fill" Height="26" VerticalAlignment="Bottom"/>
+    </Grid>
+</UserControl>
