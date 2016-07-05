@@ -133,6 +133,7 @@
   -->
   <PropertyGroup>
     <PostBuildEvent>Copy "$(TargetPath)" "$(TargetDir)$(ProjectName).gha"
+copy /Y "$(TargetDir)$(ProjectName).gha" "%25AppData%25\Grasshopper\Libraries\SpeckleSuite\$(ProjectName).gha"
 Erase "$(TargetPath)"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug32|AnyCPU' ">

@@ -27,7 +27,7 @@ namespace SpeckleSuite
         {
             try
             {
-                var path = Grasshopper.Folders.AppDataFolder + @"/speckle_api_key.txt";
+                var path = Grasshopper.Folders.AppDataFolder + @"/Libraries/SpeckleSuite/speckle_api_key.txt";
                 APIKEY = System.IO.File.ReadAllText(path);
             }
             catch
@@ -79,7 +79,7 @@ namespace SpeckleSuite
 
         public void removeApiKey()
         {
-            var path = Grasshopper.Folders.AppDataFolder + @"/speckle_api_key.txt";
+            var path = Grasshopper.Folders.AppDataFolder + @"/Libraries/SpeckleSuite/speckle_api_key.txt";
             File.Delete(path);
             APIKEY = "";
             verfied = false;
@@ -136,7 +136,7 @@ namespace SpeckleSuite
 
                     var path = Grasshopper.Folders.AppDataFolder;
 
-                    System.IO.StreamWriter file = new System.IO.StreamWriter( path + @"/speckle_api_key.txt");
+                    System.IO.StreamWriter file = new System.IO.StreamWriter( path + @"/Libraries/SpeckleSuite/speckle_api_key.txt");
                     file.WriteLine(APIKEY);
                     file.Close();
                     return true;

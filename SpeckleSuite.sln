@@ -6,9 +6,6 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpeckleSuite", "SpeckleSuite\SpeckleSuite.csproj", "{5631A4B8-B745-48C4-A12C-4762BA35625B}"
 EndProject
 Global
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug32|Any CPU = Debug32|Any CPU
 		Debug64|Any CPU = Debug64|Any CPU
