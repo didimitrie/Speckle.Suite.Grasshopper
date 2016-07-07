@@ -3,6 +3,7 @@ using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -42,11 +43,18 @@ namespace SpeckleSuite
             if (myCurve != null)
             {
                 returnObject.type = "GH_Curve";
-                if (myCurve.Value.Degree == 2)
+                PolylineCurve myPolyline = myCurve.Value as PolylineCurve;
+                if (myPolyline != null)
                 {
                     returnObject.type = "GH_Polyline";
+                    returnObject.value = getPolyline(myPolyline);
                 }
-                returnObject.value = ObjectToString(myCurve.Value);
+                else
+                {
+                    returnObject.value = ObjectToString(myCurve.Value);
+                    PolylineCurve p = myCurve.Value.ToPolyline(0, 1, 0, 0, 0, 0.1, 0, 0, true);
+                    returnObject.displayValue = getPolyline(p);
+                }
             }
 
             GH_Arc myArc = obj as GH_Arc;
@@ -103,6 +111,19 @@ namespace SpeckleSuite
             {
                 returnObject.type = "GH_Surface";
                 returnObject.value = ObjectToString(mySurface.Value);
+
+                Mesh[] meshes;
+                Mesh joinedMesh = new Mesh();
+                meshes = Mesh.CreateFromBrep(mySurface.Value);
+                foreach (Mesh tmesh in meshes)
+                {
+                    joinedMesh.Append(tmesh);
+                }
+
+                returnObject.displayValue = new ExpandoObject();
+                returnObject.displayValue.faces = joinedMesh.Faces;
+                returnObject.displayValue.vertices = joinedMesh.Vertices;
+                returnObject.displayValue.vertexColors = joinedMesh.VertexColors;
             }
 
             GH_Brep myBrep = obj as GH_Brep;
@@ -110,6 +131,19 @@ namespace SpeckleSuite
             {
                 returnObject.type = "GH_Brep";
                 returnObject.value = ObjectToString(myBrep.Value);
+
+                Mesh[] meshes;
+                Mesh joinedMesh = new Mesh();
+                meshes = Mesh.CreateFromBrep(myBrep.Value);
+                foreach (Mesh tmesh in meshes)
+                {
+                    joinedMesh.Append(tmesh);
+                }
+
+                returnObject.displayValue = new ExpandoObject();
+                returnObject.displayValue.faces = joinedMesh.Faces;
+                returnObject.displayValue.vertices = joinedMesh.Vertices;
+                returnObject.displayValue.vertexColors = joinedMesh.VertexColors;
             }
 
             GH_Mesh myMesh = obj as GH_Mesh;
@@ -272,6 +306,19 @@ namespace SpeckleSuite
             exportPlane.ydir = myPlane.YAxis;
 
             return exportPlane;
+        }
+
+        public static dynamic getPolyline(PolylineCurve myPoly)
+        {
+            Polyline p;
+            dynamic exportPolyline = new ExpandoObject();
+            if (myPoly.TryGetPolyline(out p))
+            {
+                exportPolyline = p;
+                return exportPolyline;
+            }
+            //myPoly
+            return null;
         }
 
         public static dynamic getCircle(Circle myCircle)
