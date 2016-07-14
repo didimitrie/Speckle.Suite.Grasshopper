@@ -360,13 +360,13 @@ namespace SpeckleSuite
                                 ParamSliderObj.Add(gHNumberSlider);
                                 this.ParamIsSlider.Add(true);
                                 this.ParamSliderIndex.Add(k);
+                                k++;
                             }
                             else
                             {
                                 this.ParamIsSlider.Add(false);
                                 this.ParamSliderIndex.Add(-1);
                             }
-                            k++;
                         }
                         catch (Exception exception1)
                         {
@@ -394,15 +394,15 @@ namespace SpeckleSuite
                 //if param is slider then get slider data
                 if (ParamIsSlider[i])
                 {
-                    
+                    int j = ParamSliderIndex[i];
                     structureItem.count++;
                     dynamic returnObject = new System.Dynamic.ExpandoObject();
                     returnObject.groupName = (string)structureItem.name;
                     returnObject.type = "GH_Slider";
-                    returnObject.value = ParamSliderObj[i].Slider.Value;
-                    returnObject.Min = ParamSliderObj[i].Slider.Minimum;
-                    returnObject.Max = ParamSliderObj[i].Slider.Maximum;
-                    //returnObject.Step = this.stepSize(In_SliderList[i]);
+                    returnObject.value = ParamSliderObj[j].Slider.Value;
+                    returnObject.Min = ParamSliderObj[j].Slider.Minimum;
+                    returnObject.Max = ParamSliderObj[j].Slider.Maximum;
+                    //returnObject.Step = this.stepSize(In_SliderList[j]);
                     sendEventData.objects.Add(returnObject);
                 }
                 else { 
