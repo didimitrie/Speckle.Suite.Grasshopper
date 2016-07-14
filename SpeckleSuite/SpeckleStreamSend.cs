@@ -394,16 +394,24 @@ namespace SpeckleSuite
                 //if param is slider then get slider data
                 if (ParamIsSlider[i])
                 {
-                    structureItem.Min = ParamSliderObj[i].Slider.Minimum;
-                    structureItem.Max = ParamSliderObj[i].Slider.Maximum;
-                    //structureItem.Step = this.stepSize(In_SliderList[i]);
+                    
+                    structureItem.count++;
+                    dynamic returnObject = new System.Dynamic.ExpandoObject();
+                    returnObject.groupName = (string)structureItem.name;
+                    returnObject.type = "GH_Slider";
+                    returnObject.value = ParamSliderObj[i].Slider.Value;
+                    returnObject.Min = ParamSliderObj[i].Slider.Minimum;
+                    returnObject.Max = ParamSliderObj[i].Slider.Maximum;
+                    //returnObject.Step = this.stepSize(In_SliderList[i]);
+                    sendEventData.objects.Add(returnObject);
                 }
+                else { 
                 foreach (Object myObj in param.VolatileData.AllData(true))
                 {
                     structureItem.count++;
                     sendEventData.objects.Add(StreamConverter.castFromGH(myObj, (string)structureItem.name));
                 }
-
+                }
                 structure.Add(structureItem as dynamic);
                 i++;
             }
