@@ -2,17 +2,13 @@
 using System.Collections.Generic;
 
 using Grasshopper.Kernel;
-using Rhino.Geometry;
 using System.Windows.Forms;
 using SocketIOClient;
-using System.IO;
-using Grasshopper.Kernel.Types;
 using GH_IO.Serialization;
-using Grasshopper.GUI.Canvas;
 using Grasshopper.Kernel.Parameters;
-using Grasshopper.GUI;
 using System.Dynamic;
-using System.Diagnostics;
+using Grasshopper.Kernel.Special;
+using System.Linq;
 
 namespace SpeckleSuite
 {
@@ -23,6 +19,12 @@ namespace SpeckleSuite
         GH_Document GrasshopperDocument;
 
         SpeckleUtils myUtils;
+
+        //connect params to sliders
+
+        private List<GH_NumberSlider> ParamSliderObj;
+        private List<bool> ParamIsSlider;
+        private List<int> ParamSliderIndex;
 
         public bool connected;
         public string STREAM_ID = null;
@@ -338,13 +340,50 @@ namespace SpeckleSuite
 
             if (streamingPaused && !pushStream) return;
 
-
+            //try to see if input params are sliders
+            try
+            {
+                this.ParamSliderObj = new List<GH_NumberSlider>();
+                this.ParamIsSlider = new List<bool>();
+                this.ParamSliderIndex = new List<int>();
+                int k = 0;
+                IList<IGH_Param> sources = this.Params.Input;
+                if (sources.Any<IGH_Param>())
+                {
+                    foreach (IGH_Param source in sources)
+                    {
+                        try
+                        {
+                            GH_NumberSlider gHNumberSlider = source.Sources[0] as GH_NumberSlider;
+                            if (gHNumberSlider != null)
+                            {
+                                ParamSliderObj.Add(gHNumberSlider);
+                                this.ParamIsSlider.Add(true);
+                                this.ParamSliderIndex.Add(k);
+                            }
+                            else
+                            {
+                                this.ParamIsSlider.Add(false);
+                                this.ParamSliderIndex.Add(-1);
+                            }
+                            k++;
+                        }
+                        catch (Exception exception1)
+                        {
+                        }
+                    }
+                }
+            }
+            catch (Exception exception2)
+            {
+            }
+            //end try to get sliders in params.
 
             dynamic sendEventData = new System.Dynamic.ExpandoObject();
             sendEventData.objects = new List<dynamic>();
 
             List<dynamic> structure = new List<dynamic>();
-
+            int i = 0;
             foreach (IGH_Param param in this.Params.Input)
             {
                 dynamic structureItem = new System.Dynamic.ExpandoObject();
@@ -352,6 +391,13 @@ namespace SpeckleSuite
                 structureItem.guid = param.InstanceGuid.ToString();
                 structureItem.count = 0;
                 structureItem.topology = getParamTopology(param);
+                //if param is slider then get slider data
+                if (ParamIsSlider[i])
+                {
+                    structureItem.Min = ParamSliderObj[i].Slider.Minimum;
+                    structureItem.Max = ParamSliderObj[i].Slider.Maximum;
+                    //structureItem.Step = this.stepSize(In_SliderList[i]);
+                }
                 foreach (Object myObj in param.VolatileData.AllData(true))
                 {
                     structureItem.count++;
@@ -359,6 +405,7 @@ namespace SpeckleSuite
                 }
 
                 structure.Add(structureItem as dynamic);
+                i++;
             }
 
             sendEventData.structure = structure;
