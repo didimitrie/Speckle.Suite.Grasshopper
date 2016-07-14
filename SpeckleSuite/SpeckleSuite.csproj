@@ -85,6 +85,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SpeckleLoader.cs" />
     <Compile Include="SpeckleStreamCloudComponent.cs" />
     <Compile Include="SpeckleStreamCloudComponentAttr.cs" />
     <Compile Include="SpeckleStreamServerClientAttr.cs" />
