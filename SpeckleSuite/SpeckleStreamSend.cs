@@ -10,6 +10,7 @@ using System.Dynamic;
 using Grasshopper.Kernel.Special;
 using System.Linq;
 using System.Diagnostics;
+using Grasshopper.GUI.Base;
 
 namespace SpeckleSuite
 {
@@ -435,7 +436,7 @@ namespace SpeckleSuite
                     returnObject.value = ParamSliderObj[j].Slider.Value;
                     returnObject.Min = ParamSliderObj[j].Slider.Minimum;
                     returnObject.Max = ParamSliderObj[j].Slider.Maximum;
-                    //returnObject.Step = this.stepSize(In_SliderList[j]);
+                    returnObject.Step = getSliderStep(ParamSliderObj[j].Slider);
                     sendEventData.objects.Add(returnObject);
                 }
                 else { 
@@ -468,6 +469,23 @@ namespace SpeckleSuite
             {
                 //updateDocName();
             }
+        }
+
+        private dynamic getSliderStep(GH_SliderBase gH_NumberSlider)
+        {
+            switch (gH_NumberSlider.Type)
+            {
+                case GH_SliderAccuracy.Float:
+                    double i =  1 / Math.Pow(10, gH_NumberSlider.DecimalPlaces);
+                    return i;
+                case GH_SliderAccuracy.Integer:
+                    return 1;
+                case GH_SliderAccuracy.Even:
+                    return 2;
+                case GH_SliderAccuracy.Odd:
+                    return 2;
+            }
+            throw new NotImplementedException();
         }
 
         public string getParamTopology(IGH_Param param)
