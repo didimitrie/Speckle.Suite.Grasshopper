@@ -30,6 +30,7 @@ namespace SpeckleSuite
         public dynamic output = null;
         public dynamic parsedOutput = null;
         public dynamic parsedOutputStructure = null;
+        public dynamic parsedOutputObjects = null;
 
         public string docName = null;
 
@@ -165,6 +166,18 @@ namespace SpeckleSuite
             });
 
             mySocket.On("update-clients", (data) =>
+            {
+                if (streamingPaused) return;
+
+                this.parsedOutput = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(data.Json.Args[0]);
+                parsedOutputStructure = parsedOutput.structure;
+                //MessageBox.Show(data.Json.Args[0]);
+                Debug.WriteLine(">>>>>>>>>>>>>>>>>>>>>>>>Got Data");
+
+                Rhino.RhinoApp.MainApplicationWindow.Invoke(expireComponentAction);
+            });
+
+            mySocket.On("update-sliders", (data) =>
             {
                 if (streamingPaused) return;
 

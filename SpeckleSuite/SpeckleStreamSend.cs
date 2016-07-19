@@ -9,6 +9,7 @@ using Grasshopper.Kernel.Parameters;
 using System.Dynamic;
 using Grasshopper.Kernel.Special;
 using System.Linq;
+using System.Diagnostics;
 
 namespace SpeckleSuite
 {
@@ -21,10 +22,13 @@ namespace SpeckleSuite
         SpeckleUtils myUtils;
 
         //connect params to sliders
-
         private List<GH_NumberSlider> ParamSliderObj;
         private List<bool> ParamIsSlider;
         private List<int> ParamSliderIndex;
+
+        public dynamic parsedOutput = null;
+        public dynamic parsedOutputData = null;
+        public dynamic parsedOutputObject = null;
 
         public bool connected;
         public string STREAM_ID = null;
@@ -212,12 +216,41 @@ namespace SpeckleSuite
                     Rhino.RhinoApp.MainApplicationWindow.Invoke(expireComponentAction);
                 }
             });
+            
+            mySocket.On("update-sliders", (data) =>
+            {
+                if (streamingPaused) return;
+
+                this.parsedOutput = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(data.Json.Args[0]);
+                parsedOutputData = parsedOutput.objects;
+                //MessageBox.Show(data.Json.Args[0]);
+                Debug.WriteLine(">>>>>>>>>>>>>>>>>>>>>>>>Got Update Sliders");
+                int i = 0;
+                foreach (dynamic parsedOutputObject in parsedOutputData)
+                {
+                    if (ParamIsSlider[i])
+                    {
+                        int k = ParamSliderIndex[i];
+                        GH_NumberSlider ActiveSlider = ParamSliderObj[k];
+                        try { 
+                        ActiveSlider.SetSliderValue(decimal.Parse(parsedOutputObject.value.ToString()));
+                        ActiveSlider.Slider.Minimum = decimal.Parse(parsedOutputObject.Min.ToString());
+                        ActiveSlider.Slider.Maximum = decimal.Parse(parsedOutputObject.Max.ToString());
+                        } catch (Exception exception4)
+                        {
+                            Debug.WriteLine(exception4);
+                        }
+                    }
+                    i++;
+                }
+                Rhino.RhinoApp.MainApplicationWindow.Invoke(expireComponentAction);
+            });
+
 
             // reinstate events for the parameters
             foreach (IGH_Param myparam in Params.Input)
                 myparam.ObjectChanged += Param_ObjectChanged;
-
-
+           
             base.AddedToDocument(document);
         }
 
