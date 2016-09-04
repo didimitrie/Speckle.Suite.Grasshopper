@@ -34,18 +34,7 @@ namespace SpeckleSuite
             {
                 
             }
-            try
-            {
-                //var path = Grasshopper.Folders.AppDataFolder + @"/speckle_api_endpoint.txt";
-                //APIENDPOINT = System.IO.File.ReadAllText(path);
-                //httpServer = new Uri(APIENDPOINT + ":3000");
-                //socketServer = new Uri(APIENDPOINT + ":3001");
-                //MessageBox.Show("You have set a different api endpoint: speckle will try to use " + APIENDPOINT + " as a server!");
-            }
-            catch
-            {
-                
-            }
+
         }
 
         public void openHelp(Object sender, EventArgs e)
@@ -96,7 +85,7 @@ namespace SpeckleSuite
                 APIKEY = "";
                 return false;
             }
-            var client = new RestClient(new Uri(this.httpServer, "/api/user/keycheck"));
+            var client = new RestClient(new Uri(this.httpServer, "/auth/keycheck"));
             var request = new RestRequest(Method.POST);
             request.AddHeader("cache-control", "no-cache");
             request.AddHeader("content-type", "application/json");
