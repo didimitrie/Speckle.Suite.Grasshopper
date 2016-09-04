@@ -2,17 +2,15 @@
 using System.Collections.Generic;
 
 using Grasshopper.Kernel;
-using Rhino.Geometry;
 using System.Windows.Forms;
 using SocketIOClient;
-using System.IO;
-using Grasshopper.Kernel.Types;
 using GH_IO.Serialization;
-using Grasshopper.GUI.Canvas;
 using Grasshopper.Kernel.Parameters;
-using Grasshopper.GUI;
 using System.Dynamic;
+using Grasshopper.Kernel.Special;
+using System.Linq;
 using System.Diagnostics;
+using Grasshopper.GUI.Base;
 
 namespace SpeckleSuite
 {
@@ -23,6 +21,15 @@ namespace SpeckleSuite
         GH_Document GrasshopperDocument;
 
         SpeckleUtils myUtils;
+
+        //connect params to sliders
+        private List<GH_NumberSlider> ParamSliderObj;
+        private List<bool> ParamIsSlider;
+        private List<int> ParamSliderIndex;
+
+        public dynamic parsedOutput = null;
+        public dynamic parsedOutputData = null;
+        public dynamic parsedOutputObject = null;
 
         public bool connected;
         public string STREAM_ID = null;
@@ -210,12 +217,41 @@ namespace SpeckleSuite
                     Rhino.RhinoApp.MainApplicationWindow.Invoke(expireComponentAction);
                 }
             });
+            
+            mySocket.On("update-sliders", (data) =>
+            {
+                if (streamingPaused) return;
+
+                this.parsedOutput = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(data.Json.Args[0]);
+                parsedOutputData = parsedOutput.objects;
+                //MessageBox.Show(data.Json.Args[0]);
+                Debug.WriteLine(">>>>>>>>>>>>>>>>>>>>>>>>Got Update Sliders");
+                int i = 0;
+                foreach (dynamic parsedOutputObject in parsedOutputData)
+                {
+                    if (ParamIsSlider[i])
+                    {
+                        int k = ParamSliderIndex[i];
+                        GH_NumberSlider ActiveSlider = ParamSliderObj[k];
+                        try { 
+                        ActiveSlider.SetSliderValue(decimal.Parse(parsedOutputObject.value.ToString()));
+                        ActiveSlider.Slider.Minimum = decimal.Parse(parsedOutputObject.Min.ToString());
+                        ActiveSlider.Slider.Maximum = decimal.Parse(parsedOutputObject.Max.ToString());
+                        } catch (Exception exception4)
+                        {
+                            Debug.WriteLine(exception4);
+                        }
+                    }
+                    i++;
+                }
+                Rhino.RhinoApp.MainApplicationWindow.Invoke(expireComponentAction);
+            });
+
 
             // reinstate events for the parameters
             foreach (IGH_Param myparam in Params.Input)
                 myparam.ObjectChanged += Param_ObjectChanged;
-
-
+           
             base.AddedToDocument(document);
         }
 
@@ -338,13 +374,50 @@ namespace SpeckleSuite
 
             if (streamingPaused && !pushStream) return;
 
-
+            //try to see if input params are sliders
+            try
+            {
+                this.ParamSliderObj = new List<GH_NumberSlider>();
+                this.ParamIsSlider = new List<bool>();
+                this.ParamSliderIndex = new List<int>();
+                int k = 0;
+                IList<IGH_Param> sources = this.Params.Input;
+                if (sources.Any<IGH_Param>())
+                {
+                    foreach (IGH_Param source in sources)
+                    {
+                        try
+                        {
+                            GH_NumberSlider gHNumberSlider = source.Sources[0] as GH_NumberSlider;
+                            if (gHNumberSlider != null)
+                            {
+                                ParamSliderObj.Add(gHNumberSlider);
+                                this.ParamIsSlider.Add(true);
+                                this.ParamSliderIndex.Add(k);
+                                k++;
+                            }
+                            else
+                            {
+                                this.ParamIsSlider.Add(false);
+                                this.ParamSliderIndex.Add(-1);
+                            }
+                        }
+                        catch (Exception exception1)
+                        {
+                        }
+                    }
+                }
+            }
+            catch (Exception exception2)
+            {
+            }
+            //end try to get sliders in params.
 
             dynamic sendEventData = new System.Dynamic.ExpandoObject();
             sendEventData.objects = new List<dynamic>();
 
             List<dynamic> structure = new List<dynamic>();
-
+            int i = 0;
             foreach (IGH_Param param in this.Params.Input)
             {
                 dynamic structureItem = new System.Dynamic.ExpandoObject();
@@ -352,13 +425,29 @@ namespace SpeckleSuite
                 structureItem.guid = param.InstanceGuid.ToString();
                 structureItem.count = 0;
                 structureItem.topology = getParamTopology(param);
+                //if param is slider then get slider data
+                if (ParamIsSlider[i])
+                {
+                    int j = ParamSliderIndex[i];
+                    structureItem.count++;
+                    dynamic returnObject = new System.Dynamic.ExpandoObject();
+                    returnObject.groupName = (string)structureItem.name;
+                    returnObject.type = "GH_Slider";
+                    returnObject.value = ParamSliderObj[j].Slider.Value;
+                    returnObject.Min = ParamSliderObj[j].Slider.Minimum;
+                    returnObject.Max = ParamSliderObj[j].Slider.Maximum;
+                    returnObject.Step = getSliderStep(ParamSliderObj[j].Slider);
+                    sendEventData.objects.Add(returnObject);
+                }
+                else { 
                 foreach (Object myObj in param.VolatileData.AllData(true))
                 {
                     structureItem.count++;
                     sendEventData.objects.Add(StreamConverter.castFromGH(myObj, (string)structureItem.name));
                 }
-
+                }
                 structure.Add(structureItem as dynamic);
+                i++;
             }
 
             sendEventData.structure = structure;
@@ -380,6 +469,23 @@ namespace SpeckleSuite
             {
                 //updateDocName();
             }
+        }
+
+        private dynamic getSliderStep(GH_SliderBase gH_NumberSlider)
+        {
+            switch (gH_NumberSlider.Type)
+            {
+                case GH_SliderAccuracy.Float:
+                    double i =  1 / Math.Pow(10, gH_NumberSlider.DecimalPlaces);
+                    return i;
+                case GH_SliderAccuracy.Integer:
+                    return 1;
+                case GH_SliderAccuracy.Even:
+                    return 2;
+                case GH_SliderAccuracy.Odd:
+                    return 2;
+            }
+            throw new NotImplementedException();
         }
 
         public string getParamTopology(IGH_Param param)
